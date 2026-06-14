@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão de TCC - Interface de Testes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status.online {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status.offline {
+            background: #f44336;
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .response {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .response.show {
+            display: block;
+        }
+
+        .response.success {
+            border-left-color: #4caf50;
+            background: #f1f8f6;
+        }
+
+        .response.error {
+            border-left-color: #f44336;
+            background: #fef5f5;
+        }
+
+        .response pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #333;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .auth-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .auth-container h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .profile-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .profile-btn {
+            padding: 12px 24px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .profile-btn:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .profile-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        .profile-info {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .profile-info p {
+            color: #333;
+            margin: 5px 0;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: #f44336;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .logout-btn:hover {
+            background: #da190b;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .show-for-all {
+            display: block;
+        }
+
+        .profile-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                justify-content: center;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Sistema de Gestão de TCC</h1>
+            <p>Interface de testes para a API Gateway</p>
+            <div class="status offline" id="status">Verificando conexão...</div>
+        </div>
+
+        <div class="auth-container">
+            <h2>Selecione seu Perfil</h2>
+            <div class="profile-selector">
+                <button class="profile-btn" onclick="applyProfile('aluno')">Aluno</button>
+                <button class="profile-btn" onclick="applyProfile('orientador')">Orientador</button>
+                <button class="profile-btn" onclick="applyProfile('coordenador')">Coordenador</button>
+                <button class="profile-btn" onclick="applyProfile('banca')">Banca</button>
+            </div>
+        </div>
+
+        <div class="tabs" id="tabs-container">
+            <button class="tab-btn active" onclick="switchTab('submissao')">📝 Submissão</button>
+            <button class="tab-btn" onclick="switchTab('documentos')">📄 Documentos</button>
+            <button class="tab-btn" onclick="switchTab('avaliacao')">⭐ Avaliação</button>
+            <button class="tab-btn" onclick="switchTab('sistema')">⚙️ Sistema</button>
+        </div>
+
+        <!-- TAB: SUBMISSÃO -->
+        <div id="submissao" class="tab-content active profile-aluno">
+            <div class="section">
+                <h2>Submeter Proposta de TCC</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="submissao_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="form-group">
+                    <label>Título da Proposta</label>
+                    <input type="text" id="submissao_titulo" placeholder="Digite o título" value="Proposta de TCC Teste">
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea id="submissao_descricao" placeholder="Descreva a proposta...">Descrição da proposta de TCC</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Orientador</label>
+                    <input type="text" id="submissao_orientador" placeholder="Nome do orientador" value="Prof. João Silva">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="submeterProposta()">Submeter Proposta</button>
+                </div>
+                <div class="loading" id="submissao-loading">
+                    <div class="spinner"></div>
+                    <p>Enviando...</p>
+                </div>
+                <div class="response" id="submissao-response"></div>
+            </div>
+
+            <div class="section">
+                <h2>Listar Propostas do Aluno</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="listar_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="listarPropostas()">Listar Propostas</button>
+                </div>
+                <div class="loading" id="listar-loading">
+                    <div class="spinner"></div>
+                    <p>Carregando...</p>
+                </div>
+                <div class="response" id="listar-response"></div>
+            </div>
+        </div>
+
+        <!-- TAB: DOCUMENTOS -->
+        <div id="documentos" class="tab-content profile-aluno">
+            <div class="section">
+                <h2>Submeter Versão de Documento</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="doc_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="form-group">
+                    <label>Versão</label>
+                    <input type="text" id="doc_versao" placeholder="Ex: 1.0" value="1.0">
+                </div>
+                <div class="form-group">
+                    <label>Conteúdo do Documento</label>
+                    <textarea id="doc_conteudo" placeholder="Cole o conteúdo...">Conteúdo do documento v1.0</textarea>
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="submeterDocumento()">Submeter Documento</button>
+                </div>
+                <div class="loading" id="doc-loading">
+                    <div class="spinner"></div>
+                    <p>Enviando...</p>
+                </div>
+                <div class="response" id="doc-response"></div>
+            </div>
+
+            <div class="section">
+                <h2>Histórico de Versões</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="historico_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="listarHistorico()">Listar Histórico</button>
+                </div>
+                <div class="loading" id="historico-loading">
+                    <div class="spinner"></div>
+                    <p>Carregando...</p>
+                </div>
+                <div class="response" id="historico-response"></div>
+            </div>
+
+            <div class="section">
+                <h2>Submeter Versão Parcial</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="parcial_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="form-group">
+                    <label>Conteúdo Parcial</label>
+                    <textarea id="parcial_conteudo" placeholder="Conteúdo parcial...">Versão parcial do documento</textarea>
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="submeterVersaoParcial()">Submeter Versão Parcial</button>
+                </div>
+                <div class="loading" id="parcial-loading">
+                    <div class="spinner"></div>
+                    <p>Enviando...</p>
+                </div>
+                <div class="response" id="parcial-response"></div>
+            </div>
+
+            <div class="section">
+                <h2>Submeter Versão Final</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="final_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="form-group">
+                    <label>Conteúdo Final</label>
+                    <textarea id="final_conteudo" placeholder="Conteúdo final...">Versão final do documento (TCC 2)</textarea>
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="submeterVersaoFinal()">Submeter Versão Final</button>
+                </div>
+                <div class="loading" id="final-loading">
+                    <div class="spinner"></div>
+                    <p>Enviando...</p>
+                </div>
+                <div class="response" id="final-response"></div>
+            </div>
+        </div>
+
+        <!-- TAB: AVALIAÇÃO -->
+        <div id="avaliacao" class="tab-content profile-orientador profile-banca profile-coordenador">
+            <div class="section show-for-orientador show-for-banca show-for-coordenador">
+                <h2>Enviar Feedback</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="feedback_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="form-group">
+                    <label>ID do Avaliador</label>
+                    <input type="text" id="feedback_avaliador_id" placeholder="Ex: PROF001" value="PROF001">
+                </div>
+                <div class="form-group">
+                    <label>Feedback</label>
+                    <textarea id="feedback_texto" placeholder="Digite o feedback...">Feedback sobre o trabalho</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Pontuação (0-10)</label>
+                    <input type="number" id="feedback_pontuacao" min="0" max="10" value="8" step="0.5">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="enviarFeedback()">Enviar Feedback</button>
+                </div>
+                <div class="loading" id="feedback-loading">
+                    <div class="spinner"></div>
+                    <p>Enviando...</p>
+                </div>
+                <div class="response" id="feedback-response"></div>
+            </div>
+
+            <div class="section">
+                <h2>Obter Feedbacks</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="get_feedback_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="obterFeedbacks()">Obter Feedbacks</button>
+                </div>
+                <div class="loading" id="get-feedback-loading">
+                    <div class="spinner"></div>
+                    <p>Carregando...</p>
+                </div>
+                <div class="response" id="get-feedback-response"></div>
+            </div>
+
+            <div class="section">
+                <h2>Notas</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="notas_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="obterNotaParcial()">Nota Parcial</button>
+                    <button class="btn-secondary" onclick="obterNotaFinal()">Nota Final</button>
+                    <button class="btn-secondary" onclick="obterHistoricoNotas()">Histórico</button>
+                </div>
+                <div class="loading" id="notas-loading">
+                    <div class="spinner"></div>
+                    <p>Carregando...</p>
+                </div>
+                <div class="response" id="notas-response"></div>
+            </div>
+        </div>
+
+        <!-- TAB: SISTEMA -->
+        <div id="sistema" class="tab-content profile-aluno profile-orientador profile-banca profile-coordenador">
+            <div class="section">
+                <h2>Saúde do Sistema</h2>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="verificarSaude()">Verificar Status</button>
+                </div>
+                <div class="loading" id="saude-loading">
+                    <div class="spinner"></div>
+                    <p>Verificando...</p>
+                </div>
+                <div class="response" id="saude-response"></div>
+            </div>
+
+            <div class="section">
+                <h2>Notificações do Aluno</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="notif_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="obterNotificacoes()">Obter Notificações</button>
+                </div>
+                <div class="loading" id="notif-loading">
+                    <div class="spinner"></div>
+                    <p>Carregando...</p>
+                </div>
+                <div class="response" id="notif-response"></div>
+            </div>
+
+            <div class="section">
+                <h2>Status Geral do Aluno</h2>
+                <div class="form-group">
+                    <label>ID do Aluno</label>
+                    <input type="text" id="status_aluno_id" placeholder="Ex: ALU001" value="ALU001">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="obterStatus()">Obter Status</button>
+                </div>
+                <div class="loading" id="status-loading">
+                    <div class="spinner"></div>
+                    <p>Carregando...</p>
+                </div>
+                <div class="response" id="status-response"></div>
+            </div>
+
+            <div class="section">
+                <h2>Informações da API</h2>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="obterDocumentacao()">Carregar Documentação</button>
+                </div>
+                <div class="loading" id="docs-loading">
+                    <div class="spinner"></div>
+                    <p>Carregando...</p>
+                </div>
+                <div class="response" id="docs-response"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api/v1';
+
+        // Verificar conexão ao carregar
+        window.addEventListener('load', () => {
+            verificarConexao();
+            setInterval(verificarConexao, 10000);
+
+            const savedProfile = localStorage.getItem('userProfile');
+            if (savedProfile) {
+                updateUI(savedProfile);
+            }
+        });
+
+        function applyProfile(profile) {
+            document.querySelectorAll('.profile-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            localStorage.setItem('userProfile', profile);
+            updateUI(profile);
+        }
+
+        function updateUI(profile) {
+            console.log(`Aplicando perfil: ${profile}`);
+
+            // 1. Gerenciar abas (tab-content e tab-btn)
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            const allowedTabs = document.querySelectorAll(`.profile-${profile}`);
+            if (allowedTabs.length > 0) {
+                allowedTabs[0].classList.add('active');
+                const tabId = allowedTabs[0].id;
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    if (btn.getAttribute('onclick').includes(tabId)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            // 2. Gerenciar elementos granulares (show-for-*)
+            document.querySelectorAll('[class*="show-for-"]').forEach(el => {
+                if (el.classList.contains(`show-for-${profile}`) || el.classList.contains('show-for-all')) {
+                    el.classList.remove('hidden');
+                    el.style.display = ''; // Reseta para o valor padrão do CSS
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+        }
+
+        function verificarConexao() {
+            fetch('http://localhost:3000')
+                .then(() => {
+                    document.getElementById('status').textContent = '✅ Online';
+                    document.getElementById('status').classList.remove('offline');
+                    document.getElementById('status').classList.add('online');
+                })
+                .catch(() => {
+                    document.getElementById('status').textContent = '❌ Offline';
+                    document.getElementById('status').classList.add('offline');
+                    document.getElementById('status').classList.remove('online');
+                });
+        }
+
+        function switchTab(tabName) {
+            // Esconder todos os tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Remover active dos botões
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Mostrar tab selecionado
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showResponse(elementId, data, isSuccess = true) {
+            const responseDiv = document.getElementById(elementId);
+            responseDiv.classList.add('show');
+            responseDiv.classList.toggle('success', isSuccess);
+            responseDiv.classList.toggle('error', !isSuccess);
+            responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        function showLoading(elementId, show = true) {
+            document.getElementById(elementId).classList.toggle('show', show);
+        }
+
+        // ============ SUBMISSÃO ============
+        async function submeterProposta() {
+            const data = {
+                aluno_id: document.getElementById('submissao_aluno_id').value,
+                titulo: document.getElementById('submissao_titulo').value,
+                descricao: document.getElementById('submissao_descricao').value,
+                orientador: document.getElementById('submissao_orientador').value
+            };
+
+            if (!data.aluno_id || !data.titulo) {
+                alert('Preencha os campos obrigatórios!');
+                return;
+            }
+
+            showLoading('submissao-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/submissao/proposta`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                showResponse('submissao-response', result, response.ok);
+            } catch (error) {
+                showResponse('submissao-response', { erro: error.message }, false);
+            } finally {
+                showLoading('submissao-loading', false);
+            }
+        }
+
+        async function listarPropostas() {
+            const aluno_id = document.getElementById('listar_aluno_id').value;
+            if (!aluno_id) {
+                alert('Digite o ID do aluno!');
+                return;
+            }
+
+            showLoading('listar-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/submissao/proposta/${aluno_id}`);
+                const result = await response.json();
+                showResponse('listar-response', result, response.ok);
+            } catch (error) {
+                showResponse('listar-response', { erro: error.message }, false);
+            } finally {
+                showLoading('listar-loading', false);
+            }
+        }
+
+        // ============ DOCUMENTOS ============
+        async function submeterDocumento() {
+            const data = {
+                aluno_id: document.getElementById('doc_aluno_id').value,
+                versao: document.getElementById('doc_versao').value,
+                conteudo: document.getElementById('doc_conteudo').value
+            };
+
+            if (!data.aluno_id || !data.versao) {
+                alert('Preencha os campos obrigatórios!');
+                return;
+            }
+
+            showLoading('doc-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/documentos/versao`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                showResponse('doc-response', result, response.ok);
+            } catch (error) {
+                showResponse('doc-response', { erro: error.message }, false);
+            } finally {
+                showLoading('doc-loading', false);
+            }
+        }
+
+        async function listarHistorico() {
+            const aluno_id = document.getElementById('historico_aluno_id').value;
+            if (!aluno_id) {
+                alert('Digite o ID do aluno!');
+                return;
+            }
+
+            showLoading('historico-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/documentos/historico/${aluno_id}`);
+                const result = await response.json();
+                showResponse('historico-response', result, response.ok);
+            } catch (error) {
+                showResponse('historico-response', { erro: error.message }, false);
+            } finally {
+                showLoading('historico-loading', false);
+            }
+        }
+
+        async function submeterVersaoParcial() {
+            const data = {
+                aluno_id: document.getElementById('parcial_aluno_id').value,
+                conteudo: document.getElementById('parcial_conteudo').value
+            };
+
+            if (!data.aluno_id) {
+                alert('Preencha os campos obrigatórios!');
+                return;
+            }
+
+            showLoading('parcial-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/documentos/versao-parcial`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                showResponse('parcial-response', result, response.ok);
+            } catch (error) {
+                showResponse('parcial-response', { erro: error.message }, false);
+            } finally {
+                showLoading('parcial-loading', false);
+            }
+        }
+
+        // ============ AVALIAÇÃO ============
+        async function enviarFeedback() {
+            const data = {
+                aluno_id: document.getElementById('feedback_aluno_id').value,
+                avaliador_id: document.getElementById('feedback_avaliador_id').value,
+                feedback: document.getElementById('feedback_texto').value,
+                pontuacao: parseFloat(document.getElementById('feedback_pontuacao').value)
+            };
+
+            if (!data.aluno_id || !data.avaliador_id || !data.feedback) {
+                alert('Preencha todos os campos!');
+                return;
+            }
+
+            showLoading('feedback-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/avaliacao/feedback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                showResponse('feedback-response', result, response.ok);
+            } catch (error) {
+                showResponse('feedback-response', { erro: error.message }, false);
+            } finally {
+                showLoading('feedback-loading', false);
+            }
+        }
+
+        async function obterFeedbacks() {
+            const aluno_id = document.getElementById('get_feedback_aluno_id').value;
+            if (!aluno_id) {
+                alert('Digite o ID do aluno!');
+                return;
+            }
+
+            showLoading('get-feedback-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/avaliacao/feedback/${aluno_id}`);
+                const result = await response.json();
+                showResponse('get-feedback-response', result, response.ok);
+            } catch (error) {
+                showResponse('get-feedback-response', { erro: error.message }, false);
+            } finally {
+                showLoading('get-feedback-loading', false);
+            }
+        }
+
+        async function obterNotaParcial() {
+            const aluno_id = document.getElementById('notas_aluno_id').value;
+            if (!aluno_id) {
+                alert('Digite o ID do aluno!');
+                return;
+            }
+
+            showLoading('notas-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/avaliacao/nota-parcial/${aluno_id}`);
+                const result = await response.json();
+                showResponse('notas-response', result, response.ok);
+            } catch (error) {
+                showResponse('notas-response', { erro: error.message }, false);
+            } finally {
+                showLoading('notas-loading', false);
+            }
+        }
+
+        async function obterNotaFinal() {
+            const aluno_id = document.getElementById('notas_aluno_id').value;
+            if (!aluno_id) {
+                alert('Digite o ID do aluno!');
+                return;
+            }
+
+            showLoading('notas-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/avaliacao/nota-final/${aluno_id}`);
+                const result = await response.json();
+                showResponse('notas-response', result, response.ok);
+            } catch (error) {
+                showResponse('notas-response', { erro: error.message }, false);
+            } finally {
+                showLoading('notas-loading', false);
+            }
+        }
+
+        async function obterHistoricoNotas() {
+            const aluno_id = document.getElementById('notas_aluno_id').value;
+            if (!aluno_id) {
+                alert('Digite o ID do aluno!');
+                return;
+            }
+
+            showLoading('notas-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/avaliacao/historico/${aluno_id}`);
+                const result = await response.json();
+                showResponse('notas-response', result, response.ok);
+            } catch (error) {
+                showResponse('notas-response', { erro: error.message }, false);
+            } finally {
+                showLoading('notas-loading', false);
+            }
+        }
+
+        async function submeterVersaoFinal() {
+            const data = {
+                aluno_id: document.getElementById('final_aluno_id').value,
+                texto: document.getElementById('final_conteudo').value
+            };
+
+            if (!data.aluno_id || !data.texto) {
+                alert('Preencha todos os campos!');
+                return;
+            }
+
+            showLoading('final-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/documentos/versao-final`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                showResponse('final-response', result, response.ok);
+            } catch (error) {
+                showResponse('final-response', { erro: error.message }, false);
+            } finally {
+                showLoading('final-loading', false);
+            }
+        }
+
+        // ============ SISTEMA ============
+        async function verificarSaude() {
+            showLoading('saude-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/sistema/health`);
+                const result = await response.json();
+                showResponse('saude-response', result, response.ok);
+            } catch (error) {
+                showResponse('saude-response', { erro: error.message }, false);
+            } finally {
+                showLoading('saude-loading', false);
+            }
+        }
+
+        async function obterNotificacoes() {
+            const aluno_id = document.getElementById('notif_aluno_id').value;
+            if (!aluno_id) {
+                alert('Digite o ID do aluno!');
+                return;
+            }
+
+            showLoading('notif-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/sistema/notificacoes/${aluno_id}`);
+                const result = await response.json();
+                showResponse('notif-response', result, response.ok);
+            } catch (error) {
+                showResponse('notif-response', { erro: error.message }, false);
+            } finally {
+                showLoading('notif-loading', false);
+            }
+        }
+
+        async function obterStatus() {
+            const aluno_id = document.getElementById('status_aluno_id').value;
+            if (!aluno_id) {
+                alert('Digite o ID do aluno!');
+                return;
+            }
+
+            showLoading('status-loading', true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/sistema/status/${aluno_id}`);
+                const result = await response.json();
+                showResponse('status-response', result, response.ok);
+            } catch (error) {
+                showResponse('status-response', { erro: error.message }, false);
+            } finally {
+                showLoading('status-loading', false);
+            }
+        }
+
+        async function obterDocumentacao() {
+            showLoading('docs-loading', true);
+            try {
+                const response = await fetch('http://localhost:3000/api/docs');
+                const result = await response.json();
+                showResponse('docs-response', result, response.ok);
+            } catch (error) {
+                showResponse('docs-response', { erro: error.message }, false);
+            } finally {
+                showLoading('docs-loading', false);
+            }
+        }
+    </script>
+</body>
+</html>
