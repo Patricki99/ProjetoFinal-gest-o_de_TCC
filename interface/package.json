@@ -1,0 +1,12 @@
+{
+  "name": "tcc-interface",
+  "version": "1.0.0",
+  "description": "Interface web para teste da API Gateway",
+  "scripts": {
+    "start": "npx http-server -p 8080 -o",
+    "serve": "npx http-server -p 8080"
+  },
+  "keywords": ["tcc", "interface", "testing"],
+  "author": "Unifei",
+  "license": "MIT"
+}

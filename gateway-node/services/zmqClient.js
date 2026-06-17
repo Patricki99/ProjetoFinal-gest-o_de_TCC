@@ -1,5 +1,5 @@
 // Serviço de comunicação ZMQ
-const zmq = require("zmq");
+const zmq = require("zeromq");
 const { EventEmitter } = require("events");
 const { ZMQ_CONFIG } = require("../config/zmq");
 
