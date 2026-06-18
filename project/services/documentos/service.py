@@ -1,78 +1,45 @@
-# services/documentos/service.py
-import zmq
-import json
-import mysql.connector
-import time
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+import zmq, json
 from common.eventos import Evento, TipoEvento
-from common.config import get_zmq_address, DB_CONFIG
+from common.config import get_zmq_address
 from common.logger import criar_logger
+from common.db import Repositorio
 
-logger = criar_logger("Documentos")
+log = criar_logger("Documentos")
+ctx = zmq.Context.instance()
+sub = ctx.socket(zmq.SUB)
+sub.connect(get_zmq_address("gateway"))
+sub.setsockopt_string(zmq.SUBSCRIBE, TipoEvento.VERSAO_RECEBIDA.value)
+pub = ctx.socket(zmq.PUB)
+pub.bind(get_zmq_address("documentos", "bind"))
+repo = Repositorio()
+log.info("no ar | SUB gateway:versao_recebida -> versiona/persiste -> PUB versao_submetida")
 
-context = zmq.Context()
+def handle(dados):
+    if not repo.registrar_evento(dados):       # idempotencia: ignora reentrega do mesmo evento
+        log.info("evento ja processado; ignorado (idempotencia)")
+        return
+    aluno = dados["aluno_id"]
+    p = dados.get("payload", {})
+    texto = p.get("texto", "")
+    tipo = p.get("tipo", "desenvolvimento")
+    numero = repo.salvar_versao(aluno, texto, tipo)   # Controle de Versoes + DAO/MySQL
+    ev = Evento(TipoEvento.VERSAO_SUBMETIDA, aluno_id=aluno, operacao="versionar",
+                payload={"versao_id": numero, "numero": numero, "tipo": tipo,
+                         "texto": texto, "caracteres": len(texto)})
+    pub.send_string(f"{ev.evento} {ev.to_json_str()}")
+    log.info(f"versao v{numero} persistida; publicado {ev}")
 
-# Socket PUB para publicar eventos
-publisher = context.socket(zmq.PUB)
-publisher.bind(get_zmq_address("documentos", "bind"))
-
-# Conexão MySQL
-db = mysql.connector.connect(**DB_CONFIG)
-cursor = db.cursor()
-
-logger.info("🚀 Serviço de Documentos iniciado na porta 5555")
-
-def salvar_versao(aluno_id: int, texto: str, tipo: str = "desenvolvimento"):
-    """Salva uma versão do documento no banco"""
-    try:
-        cursor.execute(
-            "INSERT INTO versoes (aluno_id, texto, tipo) VALUES (%s, %s, %s)",
-            (aluno_id, texto, tipo)
-        )
-        db.commit()
-        logger.info(f"✓ Versão salva para aluno {aluno_id}")
-        return True
-    except Exception as e:
-        logger.error(f"✗ Erro ao salvar versão: {e}")
-        return False
-
-def publicar_versao(aluno_id: int, texto: str, tipo: str = "desenvolvimento"):
-    """Publica um evento de versão submetida"""
-    evento = Evento(
-        TipoEvento.VERSAO_SUBMETIDA,
-        aluno_id=aluno_id,
-        payload={
-            "texto": texto,
-            "tipo": tipo,
-            "caracteres": len(texto)
-        }
-    )
-    
-    publisher.send_string(f"{evento.evento} {evento.to_json_str()}")
-    logger.info(f"✓ Evento publicado: {evento}")
-
-# Simular submissões de versões
 if __name__ == "__main__":
     try:
-        # Simular alguns alunos enviando versões
-        versoes = [
-            (1, "Introdução: Este trabalho analisa sistemas distribuídos...", "desenvolvimento"),
-            (2, "Metodologia: Utilizamos abordagem experimental...", "desenvolvimento"),
-            (3, "Resultados: Os dados demonstram...", "desenvolvimento"),
-        ]
-        
-        for aluno_id, texto, tipo in versoes:
-            salvar_versao(aluno_id, texto, tipo)
-            publicar_versao(aluno_id, texto, tipo)
-            time.sleep(2)
-        
-        logger.info("Aguardando novas submissões...")
         while True:
-            time.sleep(60)
-            
+            try:
+                _, c = sub.recv_string().split(" ", 1)
+                handle(json.loads(c))
+            except Exception as e:               # uma mensagem ruim nao derruba o servico
+                log.error(f"erro ao processar evento: {e}")
     except KeyboardInterrupt:
-        logger.info("Serviço finalizado")
+        pass
     finally:
-        cursor.close()
-        db.close()
-        publisher.close()
-        context.term()
+        sub.close(); pub.close(); repo.fechar(); ctx.term()

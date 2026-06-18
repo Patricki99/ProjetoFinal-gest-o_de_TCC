@@ -1,1059 +1,290 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão de TCC - Interface de Testes</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .header h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .status {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .status.online {
-            background: #4caf50;
-            color: white;
-        }
-
-        .status.offline {
-            background: #f44336;
-            color: white;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            background: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #667eea;
-            transition: all 0.3s;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .tab-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .tab-btn.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .section {
-            margin-bottom: 30px;
-            padding-bottom: 30px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .section:last-child {
-            border-bottom: none;
-        }
-
-        .section h2 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-family: inherit;
-            font-size: 14px;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-
-        .response {
-            background: #f5f5f5;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            max-height: 300px;
-            overflow-y: auto;
-            display: none;
-        }
-
-        .response.show {
-            display: block;
-        }
-
-        .response.success {
-            border-left-color: #4caf50;
-            background: #f1f8f6;
-        }
-
-        .response.error {
-            border-left-color: #f44336;
-            background: #fef5f5;
-        }
-
-        .response pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            color: #333;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .loading.show {
-            display: block;
-        }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .auth-container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 40px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            text-align: center;
-        }
-
-        .auth-container h2 {
-            color: white;
-            margin-bottom: 20px;
-        }
-
-        .profile-selector {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .profile-btn {
-            padding: 12px 24px;
-            border: 2px solid white;
-            background: transparent;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-
-        .profile-btn:hover {
-            background: white;
-            color: #667eea;
-            transform: translateY(-2px);
-        }
-
-        .profile-btn.active {
-            background: white;
-            color: #667eea;
-            border-color: white;
-        }
-
-        .profile-info {
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .profile-info p {
-            color: #333;
-            margin: 5px 0;
-            font-weight: 500;
-        }
-
-        .logout-btn {
-            background: #f44336;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .logout-btn:hover {
-            background: #da190b;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .show-for-all {
-            display: block;
-        }
-
-        .profile-badge {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .tabs {
-                justify-content: center;
-            }
-
-            .header {
-                padding: 20px;
-            }
-
-            .tab-content {
-                padding: 20px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Gestão de TCC</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg,#667eea,#764ba2); min-height: 100vh; color: #222; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .card { background:#fff; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.18); padding:22px; margin-bottom:18px; }
+    h1 { font-size:22px; } h2 { font-size:17px; margin-bottom:12px; color:#333; }
+    .muted { color:#666; font-size:13px; }
+    label { display:block; font-size:13px; font-weight:600; color:#555; margin:10px 0 4px; }
+    input, textarea, select { width:100%; padding:9px; border:1px solid #ddd; border-radius:6px; font-size:14px; font-family:inherit; }
+    textarea { min-height:80px; resize:vertical; }
+    button { padding:10px 18px; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-size:14px; margin-top:14px; }
+    .primary { background:#667eea; color:#fff; } .primary:hover{ background:#5568d3; }
+    .ghost { background:#eee; color:#333; }
+    .pill { display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; }
+    .on { background:#4caf50; color:#fff; } .off { background:#f44336; color:#fff; }
+    .resp { margin-top:12px; font-family:'Courier New',monospace; font-size:12px; background:#f5f5f5; border-left:3px solid #667eea; padding:10px; border-radius:5px; white-space:pre-wrap; display:none; }
+    .resp.show { display:block; } .resp.err { border-left-color:#f44336; background:#fef5f5; }
+    .feed { max-height:300px; overflow-y:auto; margin-top:10px; }
+    .ev { padding:7px 9px; border-left:3px solid #667eea; background:#f7f7fb; margin-bottom:6px; border-radius:4px; font-family:'Courier New',monospace; font-size:13px; }
+    .ev b { color:#4a3f9f; } .ev .t { color:#999; font-size:11px; }
+    .hidden { display:none !important; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+    .crit { display:grid; grid-template-columns:1fr 90px; gap:8px; align-items:center; }
+    .crit label { margin:6px 0; }
+    @media(max-width:720px){ }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎓 Sistema de Gestão de TCC</h1>
-            <p>Interface de testes para a API Gateway</p>
-            <div class="status offline" id="status">Verificando conexão...</div>
-        </div>
-
-        <div class="auth-container">
-            <h2>Selecione seu Perfil</h2>
-            <div class="profile-selector">
-                <button class="profile-btn" onclick="applyProfile('aluno')">Aluno</button>
-                <button class="profile-btn" onclick="applyProfile('orientador')">Orientador</button>
-                <button class="profile-btn" onclick="applyProfile('coordenador')">Coordenador</button>
-                <button class="profile-btn" onclick="applyProfile('banca')">Banca</button>
-            </div>
-        </div>
-
-        <div class="tabs" id="tabs-container">
-            <button class="tab-btn active" onclick="switchTab('submissao')">📝 Submissão</button>
-            <button class="tab-btn" onclick="switchTab('documentos')">📄 Documentos</button>
-            <button class="tab-btn" onclick="switchTab('avaliacao')">⭐ Avaliação</button>
-            <button class="tab-btn" onclick="switchTab('sistema')">⚙️ Sistema</button>
-        </div>
-
-        <!-- TAB: SUBMISSÃO -->
-        <div id="submissao" class="tab-content active profile-aluno">
-            <div class="section">
-                <h2>Submeter Proposta de TCC</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="submissao_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="form-group">
-                    <label>Título da Proposta</label>
-                    <input type="text" id="submissao_titulo" placeholder="Digite o título" value="Proposta de TCC Teste">
-                </div>
-                <div class="form-group">
-                    <label>Descrição</label>
-                    <textarea id="submissao_descricao" placeholder="Descreva a proposta...">Descrição da proposta de TCC</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Orientador</label>
-                    <input type="text" id="submissao_orientador" placeholder="Nome do orientador" value="Prof. João Silva">
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="submeterProposta()">Submeter Proposta</button>
-                </div>
-                <div class="loading" id="submissao-loading">
-                    <div class="spinner"></div>
-                    <p>Enviando...</p>
-                </div>
-                <div class="response" id="submissao-response"></div>
-            </div>
-
-            <div class="section">
-                <h2>Listar Propostas do Aluno</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="listar_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="listarPropostas()">Listar Propostas</button>
-                </div>
-                <div class="loading" id="listar-loading">
-                    <div class="spinner"></div>
-                    <p>Carregando...</p>
-                </div>
-                <div class="response" id="listar-response"></div>
-            </div>
-        </div>
-
-        <!-- TAB: DOCUMENTOS -->
-        <div id="documentos" class="tab-content profile-aluno">
-            <div class="section">
-                <h2>Submeter Versão de Documento</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="doc_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="form-group">
-                    <label>Versão</label>
-                    <input type="text" id="doc_versao" placeholder="Ex: 1.0" value="1.0">
-                </div>
-                <div class="form-group">
-                    <label>Conteúdo do Documento</label>
-                    <textarea id="doc_conteudo" placeholder="Cole o conteúdo...">Conteúdo do documento v1.0</textarea>
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="submeterDocumento()">Submeter Documento</button>
-                </div>
-                <div class="loading" id="doc-loading">
-                    <div class="spinner"></div>
-                    <p>Enviando...</p>
-                </div>
-                <div class="response" id="doc-response"></div>
-            </div>
-
-            <div class="section">
-                <h2>Histórico de Versões</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="historico_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="listarHistorico()">Listar Histórico</button>
-                </div>
-                <div class="loading" id="historico-loading">
-                    <div class="spinner"></div>
-                    <p>Carregando...</p>
-                </div>
-                <div class="response" id="historico-response"></div>
-            </div>
-
-            <div class="section">
-                <h2>Submeter Versão Parcial</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="parcial_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="form-group">
-                    <label>Conteúdo Parcial</label>
-                    <textarea id="parcial_conteudo" placeholder="Conteúdo parcial...">Versão parcial do documento</textarea>
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="submeterVersaoParcial()">Submeter Versão Parcial</button>
-                </div>
-                <div class="loading" id="parcial-loading">
-                    <div class="spinner"></div>
-                    <p>Enviando...</p>
-                </div>
-                <div class="response" id="parcial-response"></div>
-            </div>
-
-            <div class="section">
-                <h2>Submeter Versão Final</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="final_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="form-group">
-                    <label>Conteúdo Final</label>
-                    <textarea id="final_conteudo" placeholder="Conteúdo final...">Versão final do documento (TCC 2)</textarea>
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="submeterVersaoFinal()">Submeter Versão Final</button>
-                </div>
-                <div class="loading" id="final-loading">
-                    <div class="spinner"></div>
-                    <p>Enviando...</p>
-                </div>
-                <div class="response" id="final-response"></div>
-            </div>
-        </div>
-
-        <!-- TAB: AVALIAÇÃO -->
-        <div id="avaliacao" class="tab-content profile-orientador profile-banca profile-coordenador">
-            <div class="section show-for-orientador show-for-banca show-for-coordenador">
-                <h2>Enviar Feedback</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="feedback_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="form-group">
-                    <label>ID do Avaliador</label>
-                    <input type="text" id="feedback_avaliador_id" placeholder="Ex: PROF001" value="PROF001">
-                </div>
-                <div class="form-group">
-                    <label>Feedback</label>
-                    <textarea id="feedback_texto" placeholder="Digite o feedback...">Feedback sobre o trabalho</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Pontuação (0-10)</label>
-                    <input type="number" id="feedback_pontuacao" min="0" max="10" value="8" step="0.5">
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="enviarFeedback()">Enviar Feedback</button>
-                </div>
-                <div class="loading" id="feedback-loading">
-                    <div class="spinner"></div>
-                    <p>Enviando...</p>
-                </div>
-                <div class="response" id="feedback-response"></div>
-            </div>
-
-            <div class="section">
-                <h2>Obter Feedbacks</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="get_feedback_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="obterFeedbacks()">Obter Feedbacks</button>
-                </div>
-                <div class="loading" id="get-feedback-loading">
-                    <div class="spinner"></div>
-                    <p>Carregando...</p>
-                </div>
-                <div class="response" id="get-feedback-response"></div>
-            </div>
-
-            <div class="section">
-                <h2>Notas</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="notas_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="obterNotaParcial()">Nota Parcial</button>
-                    <button class="btn-secondary" onclick="obterNotaFinal()">Nota Final</button>
-                    <button class="btn-secondary" onclick="obterHistoricoNotas()">Histórico</button>
-                </div>
-                <div class="loading" id="notas-loading">
-                    <div class="spinner"></div>
-                    <p>Carregando...</p>
-                </div>
-                <div class="response" id="notas-response"></div>
-            </div>
-        </div>
-
-        <!-- TAB: SISTEMA -->
-        <div id="sistema" class="tab-content profile-aluno profile-orientador profile-banca profile-coordenador">
-            <div class="section">
-                <h2>Saúde do Sistema</h2>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="verificarSaude()">Verificar Status</button>
-                </div>
-                <div class="loading" id="saude-loading">
-                    <div class="spinner"></div>
-                    <p>Verificando...</p>
-                </div>
-                <div class="response" id="saude-response"></div>
-            </div>
-
-            <div class="section">
-                <h2>Notificações do Aluno</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="notif_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="obterNotificacoes()">Obter Notificações</button>
-                </div>
-                <div class="loading" id="notif-loading">
-                    <div class="spinner"></div>
-                    <p>Carregando...</p>
-                </div>
-                <div class="response" id="notif-response"></div>
-            </div>
-
-            <div class="section">
-                <h2>Status Geral do Aluno</h2>
-                <div class="form-group">
-                    <label>ID do Aluno</label>
-                    <input type="text" id="status_aluno_id" placeholder="Ex: ALU001" value="ALU001">
-                </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="obterStatus()">Obter Status</button>
-                </div>
-                <div class="loading" id="status-loading">
-                    <div class="spinner"></div>
-                    <p>Carregando...</p>
-                </div>
-                <div class="response" id="status-response"></div>
-            </div>
-
-            <div class="section">
-                <h2>Informações da API</h2>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="obterDocumentacao()">Carregar Documentação</button>
-                </div>
-                <div class="loading" id="docs-loading">
-                    <div class="spinner"></div>
-                    <p>Carregando...</p>
-                </div>
-                <div class="response" id="docs-response"></div>
-            </div>
-        </div>
+  <div class="wrap">
+    <!-- ===== LOGIN ===== -->
+    <div id="login-view">
+      <div class="card">
+        <h1>🎓 Sistema de Gestão de TCC</h1>
+        <p class="muted">Sistema distribuído (coreografia brokerless · ZeroMQ). Faça login para continuar.</p>
+        <div id="conn" class="pill off" style="margin-top:10px;">verificando…</div>
+      </div>
+      <div class="card" style="max-width:420px; margin:0 auto;">
+        <h2>Entrar</h2>
+        <label>E-mail</label>
+        <input id="email" value="aluno@unifei.edu.br" />
+        <label>Senha</label>
+        <input id="senha" type="password" value="aluno123" />
+        <button class="primary" style="width:100%" onclick="login()">Entrar</button>
+        <div class="resp" id="login-resp"></div>
+        <p class="muted" style="margin-top:12px;">Demo: aluno@/aluno123 · orientador@/orient123 · coord@/coord123 · banca@/banca123 (domínio @unifei.edu.br)</p>
+      </div>
     </div>
 
-    <script>
-        const API_BASE_URL = 'http://localhost:3000/api/v1';
+    <!-- ===== APP ===== -->
+    <div id="app-view" class="hidden">
+      <div class="card topbar">
+        <div><h1>🎓 Gestão de TCC</h1><span class="muted" id="who"></span></div>
+        <div><span id="conn2" class="pill off">offline</span> <button class="ghost" onclick="logout()">Sair</button></div>
+      </div>
 
-        // Verificar conexão ao carregar
-        window.addEventListener('load', () => {
-            verificarConexao();
-            setInterval(verificarConexao, 10000);
+      <!-- Painel ao vivo (todos os perfis) -->
+      <div class="card">
+        <h2>📡 Coreografia ao vivo (eventos ZeroMQ)</h2>
+        <p class="muted">Eventos recebidos do gateway via WebSocket, na ordem em que percorrem a malha.</p>
+        <div class="feed" id="feed"></div>
+      </div>
 
-            const savedProfile = localStorage.getItem('userProfile');
-            if (savedProfile) {
-                updateUI(savedProfile);
-            }
-        });
+      <!-- ALUNO -->
+      <div class="card role role-aluno hidden">
+        <h2>📄 Submeter versão do TCC</h2>
+        <label>Tipo</label>
+        <select id="doc_tipo">
+          <option value="proposta">Proposta</option>
+          <option value="parcial">Versão parcial</option>
+          <option value="desenvolvimento" selected>Desenvolvimento</option>
+          <option value="final">Versão final</option>
+        </select>
+        <label>Conteúdo</label>
+        <textarea id="doc_texto">Introdução e metodologia do trabalho...</textarea>
+        <button class="primary" onclick="submeterVersao()">Submeter versão</button>
+        <div class="resp" id="doc-resp"></div>
+      </div>
 
-        function applyProfile(profile) {
-            document.querySelectorAll('.profile-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            localStorage.setItem('userProfile', profile);
-            updateUI(profile);
-        }
+      <!-- ORIENTADOR -->
+      <div class="card role role-orientador hidden">
+        <h2>📝 Parecer padronizado (orientador)</h2>
+        <label>ID do aluno</label>
+        <input id="par_aluno" type="number" value="1" />
+        <div class="crit"><label>Originalidade (0–10)</label><input id="c_orig" type="number" min="0" max="10" value="8" /></div>
+        <div class="crit"><label>Metodologia (0–10)</label><input id="c_meto" type="number" min="0" max="10" value="5" /></div>
+        <div class="crit"><label>Escrita (0–10)</label><input id="c_escr" type="number" min="0" max="10" value="7" /></div>
+        <div class="crit"><label>Relevância (0–10)</label><input id="c_rele" type="number" min="0" max="10" value="9" /></div>
+        <label>Comentário</label>
+        <textarea id="par_coment">Bom trabalho; revisar a metodologia.</textarea>
+        <button class="primary" onclick="enviarParecer()">Enviar parecer</button>
+        <div class="resp" id="par-resp"></div>
+      </div>
 
-        function updateUI(profile) {
-            console.log(`Aplicando perfil: ${profile}`);
+      <div class="card role role-orientador hidden">
+        <h2>👥 Compor banca</h2>
+        <label>ID do aluno</label>
+        <input id="bnc_aluno" type="number" value="1" />
+        <label>Avaliadores (separados por vírgula)</label>
+        <input id="bnc_aval" value="Prof. Maria, Prof. João" />
+        <label>Data da defesa</label>
+        <input id="bnc_data" value="2026-07-01 14:00" />
+        <button class="primary" onclick="comporBanca()">Definir banca</button>
+        <div class="resp" id="bnc-resp"></div>
+      </div>
 
-            // 1. Gerenciar abas (tab-content e tab-btn)
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      <!-- BANCA -->
+      <div class="card role role-banca hidden">
+        <h2>⭐ Lançar nota da defesa</h2>
+        <label>ID do aluno</label>
+        <input id="nota_aluno" type="number" value="1" />
+        <label>Nota (0–10)</label>
+        <input id="nota_valor" type="number" min="0" max="10" step="0.5" value="8" />
+        <label>Parecer</label>
+        <textarea id="nota_coment">Defesa sólida; pequenas correções.</textarea>
+        <button class="primary" onclick="lancarNota()">Submeter nota</button>
+        <div class="resp" id="nota-resp"></div>
+      </div>
 
-            const allowedTabs = document.querySelectorAll(`.profile-${profile}`);
-            if (allowedTabs.length > 0) {
-                allowedTabs[0].classList.add('active');
-                const tabId = allowedTabs[0].id;
-                document.querySelectorAll('.tab-btn').forEach(btn => {
-                    if (btn.getAttribute('onclick').includes(tabId)) {
-                        btn.classList.add('active');
-                    }
-                });
-            }
+      <!-- COORDENADOR -->
+      <div class="card role role-coordenador hidden">
+        <h2>📊 Relatório gerencial (PUSH/PULL)</h2>
+        <p class="muted">O gateway distribui a agregação a workers; o panorama volta por WebSocket.</p>
+        <button class="primary" onclick="gerarRelatorio()">Gerar relatório</button>
+        <div class="resp" id="rel-resp"></div>
+        <div id="panorama" class="hidden" style="margin-top:14px;"></div>
+      </div>
+    </div>
+  </div>
 
-            // 2. Gerenciar elementos granulares (show-for-*)
-            document.querySelectorAll('[class*="show-for-"]').forEach(el => {
-                if (el.classList.contains(`show-for-${profile}`) || el.classList.contains('show-for-all')) {
-                    el.classList.remove('hidden');
-                    el.style.display = ''; // Reseta para o valor padrão do CSS
-                } else {
-                    el.classList.add('hidden');
-                }
-            });
-        }
+  <script>
+    // ---- Configuração (multi-máquina): abra com ?api=http://IP_DO_GATEWAY:3000 ----
+    const params = new URLSearchParams(location.search);
+    const GATEWAY = (params.get('api') || localStorage.getItem('gatewayUrl') || 'http://localhost:3000').replace(/\/$/, '');
+    if (params.get('api')) localStorage.setItem('gatewayUrl', GATEWAY);
+    const API = GATEWAY + '/api/v1';
 
-        function verificarConexao() {
-            fetch('http://localhost:3000')
-                .then(() => {
-                    document.getElementById('status').textContent = '✅ Online';
-                    document.getElementById('status').classList.remove('offline');
-                    document.getElementById('status').classList.add('online');
-                })
-                .catch(() => {
-                    document.getElementById('status').textContent = '❌ Offline';
-                    document.getElementById('status').classList.add('offline');
-                    document.getElementById('status').classList.remove('online');
-                });
-        }
+    let token = localStorage.getItem('token') || null;
+    let usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
 
-        function switchTab(tabName) {
-            // Esconder todos os tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            // Remover active dos botões
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            // Mostrar tab selecionado
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-        }
+    // ---- Helpers ----
+    async function api(method, path, body) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const res = await fetch(API + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) { logout(); throw new Error('Sessão expirada — faça login novamente.'); }
+      if (!res.ok) throw new Error(data.error || ('Erro ' + res.status));
+      return data;
+    }
+    function show(id, data, ok = true) {
+      const el = document.getElementById(id);
+      el.classList.add('show'); el.classList.toggle('err', !ok);
+      el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    }
 
-        function showResponse(elementId, data, isSuccess = true) {
-            const responseDiv = document.getElementById(elementId);
-            responseDiv.classList.add('show');
-            responseDiv.classList.toggle('success', isSuccess);
-            responseDiv.classList.toggle('error', !isSuccess);
-            responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-        }
+    // ---- Conexão / status ----
+    async function verificarConexao(pillId) {
+      try { await fetch(GATEWAY + '/'); setPill(pillId, true); }
+      catch { setPill(pillId, false); }
+    }
+    function setPill(id, on) {
+      const el = document.getElementById(id); if (!el) return;
+      el.className = 'pill ' + (on ? 'on' : 'off');
+      el.textContent = on ? '✅ online' : '❌ offline';
+    }
 
-        function showLoading(elementId, show = true) {
-            document.getElementById(elementId).classList.toggle('show', show);
-        }
+    // ---- Login ----
+    async function login() {
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value;
+      try {
+        const r = await api('POST', '/auth/login', { email, senha });
+        token = r.token; usuario = r.usuario;
+        localStorage.setItem('token', token);
+        localStorage.setItem('usuario', JSON.stringify(usuario));
+        render();
+      } catch (e) { show('login-resp', e.message, false); }
+    }
+    function logout() {
+      token = null; usuario = null;
+      localStorage.removeItem('token'); localStorage.removeItem('usuario');
+      render();
+    }
 
-        // ============ SUBMISSÃO ============
-        async function submeterProposta() {
-            const data = {
-                aluno_id: document.getElementById('submissao_aluno_id').value,
-                titulo: document.getElementById('submissao_titulo').value,
-                descricao: document.getElementById('submissao_descricao').value,
-                orientador: document.getElementById('submissao_orientador').value
-            };
+    // ---- Render por perfil ----
+    function render() {
+      const logged = !!token && !!usuario;
+      document.getElementById('login-view').classList.toggle('hidden', logged);
+      document.getElementById('app-view').classList.toggle('hidden', !logged);
+      if (!logged) { verificarConexao('conn'); return; }
+      document.getElementById('who').textContent = ` — ${usuario.nome} (${usuario.role})`;
+      document.querySelectorAll('.role').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.role-' + usuario.role).forEach(el => el.classList.remove('hidden'));
+      verificarConexao('conn2');
+      conectarSocket();
+    }
 
-            if (!data.aluno_id || !data.titulo) {
-                alert('Preencha os campos obrigatórios!');
-                return;
-            }
+    // ---- WebSocket (painel ao vivo) ----
+    let socketLoaded = false;
+    function conectarSocket() {
+      if (socketLoaded) return; socketLoaded = true;
+      const s = document.createElement('script');
+      s.src = GATEWAY + '/socket.io/socket.io.js';
+      s.onload = () => {
+        const socket = io(GATEWAY, { transports: ['websocket', 'polling'] });
+        socket.on('connect', () => { setPill('conn2', true); addEvento({ tipo: 'conectado ao gateway' }); });
+        socket.on('disconnect', () => setPill('conn2', false));
+        socket.on('evento_sistema', addEvento);
+      };
+      s.onerror = () => addEvento({ tipo: 'falha ao carregar socket.io de ' + GATEWAY });
+      document.head.appendChild(s);
+    }
+    function addEvento(ev) {
+      const feed = document.getElementById('feed');
+      const tipo = ev.tipo || (ev.dados && ev.dados.evento) || '?';
+      const aluno = ev.dados && ev.dados.aluno_id;
+      const div = document.createElement('div');
+      div.className = 'ev';
+      div.innerHTML = `<b>${tipo}</b> <span class="t">aluno ${aluno ?? '-'} · ${new Date().toLocaleTimeString()}</span>`;
+      feed.prepend(div);
+      if (tipo === 'relatorio_gerado' && ev.dados && ev.dados.payload) mostrarPanorama(ev.dados.payload);
+    }
 
-            showLoading('submissao-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/submissao/proposta`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                showResponse('submissao-response', result, response.ok);
-            } catch (error) {
-                showResponse('submissao-response', { erro: error.message }, false);
-            } finally {
-                showLoading('submissao-loading', false);
-            }
-        }
+    // ---- Ações por perfil ----
+    async function submeterVersao() {
+      try {
+        const r = await api('POST', '/documentos/versao', {
+          aluno_id: usuario.id, texto: document.getElementById('doc_texto').value,
+          tipo: document.getElementById('doc_tipo').value });
+        show('doc-resp', r);
+      } catch (e) { show('doc-resp', e.message, false); }
+    }
+    async function enviarParecer() {
+      try {
+        const criterios = {
+          originalidade: +document.getElementById('c_orig').value,
+          metodologia: +document.getElementById('c_meto').value,
+          escrita: +document.getElementById('c_escr').value,
+          relevancia: +document.getElementById('c_rele').value,
+        };
+        const r = await api('POST', '/avaliacao/feedback', {
+          aluno_id: +document.getElementById('par_aluno').value,
+          criterios, comentario: document.getElementById('par_coment').value });
+        show('par-resp', r);
+      } catch (e) { show('par-resp', e.message, false); }
+    }
+    async function comporBanca() {
+      try {
+        const avaliadores = document.getElementById('bnc_aval').value.split(',').map(s => s.trim()).filter(Boolean);
+        const r = await api('POST', '/banca/definir', {
+          aluno_id: +document.getElementById('bnc_aluno').value,
+          avaliadores, data_defesa: document.getElementById('bnc_data').value, orientador_id: usuario.id });
+        show('bnc-resp', r);
+      } catch (e) { show('bnc-resp', e.message, false); }
+    }
+    async function lancarNota() {
+      try {
+        const r = await api('POST', '/banca/nota', {
+          aluno_id: +document.getElementById('nota_aluno').value,
+          nota: +document.getElementById('nota_valor').value,
+          comentario: document.getElementById('nota_coment').value });
+        show('nota-resp', r);
+      } catch (e) { show('nota-resp', e.message, false); }
+    }
+    async function gerarRelatorio() {
+      try { show('rel-resp', await api('POST', '/relatorios/gerar', { tipo: 'geral' })); }
+      catch (e) { show('rel-resp', e.message, false); }
+    }
+    function mostrarPanorama(p) {
+      const el = document.getElementById('panorama'); if (!el) return;
+      el.classList.remove('hidden');
+      const lista = (o) => Object.entries(o || {}).map(([k, v]) => `${k}: ${v}`).join(' · ');
+      el.innerHTML = `<h2>Panorama consolidado</h2>
+        <p><b>Total de TCCs:</b> ${p.total_tccs} &nbsp; <b>Defesas no prazo:</b> ${p.defesas_no_prazo}</p>
+        <p><b>Por status:</b> ${lista(p.por_status)}</p>
+        <p><b>Por área:</b> ${lista(p.por_area)}</p>`;
+    }
 
-        async function listarPropostas() {
-            const aluno_id = document.getElementById('listar_aluno_id').value;
-            if (!aluno_id) {
-                alert('Digite o ID do aluno!');
-                return;
-            }
-
-            showLoading('listar-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/submissao/proposta/${aluno_id}`);
-                const result = await response.json();
-                showResponse('listar-response', result, response.ok);
-            } catch (error) {
-                showResponse('listar-response', { erro: error.message }, false);
-            } finally {
-                showLoading('listar-loading', false);
-            }
-        }
-
-        // ============ DOCUMENTOS ============
-        async function submeterDocumento() {
-            const data = {
-                aluno_id: document.getElementById('doc_aluno_id').value,
-                versao: document.getElementById('doc_versao').value,
-                conteudo: document.getElementById('doc_conteudo').value
-            };
-
-            if (!data.aluno_id || !data.versao) {
-                alert('Preencha os campos obrigatórios!');
-                return;
-            }
-
-            showLoading('doc-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/documentos/versao`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                showResponse('doc-response', result, response.ok);
-            } catch (error) {
-                showResponse('doc-response', { erro: error.message }, false);
-            } finally {
-                showLoading('doc-loading', false);
-            }
-        }
-
-        async function listarHistorico() {
-            const aluno_id = document.getElementById('historico_aluno_id').value;
-            if (!aluno_id) {
-                alert('Digite o ID do aluno!');
-                return;
-            }
-
-            showLoading('historico-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/documentos/historico/${aluno_id}`);
-                const result = await response.json();
-                showResponse('historico-response', result, response.ok);
-            } catch (error) {
-                showResponse('historico-response', { erro: error.message }, false);
-            } finally {
-                showLoading('historico-loading', false);
-            }
-        }
-
-        async function submeterVersaoParcial() {
-            const data = {
-                aluno_id: document.getElementById('parcial_aluno_id').value,
-                conteudo: document.getElementById('parcial_conteudo').value
-            };
-
-            if (!data.aluno_id) {
-                alert('Preencha os campos obrigatórios!');
-                return;
-            }
-
-            showLoading('parcial-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/documentos/versao-parcial`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                showResponse('parcial-response', result, response.ok);
-            } catch (error) {
-                showResponse('parcial-response', { erro: error.message }, false);
-            } finally {
-                showLoading('parcial-loading', false);
-            }
-        }
-
-        // ============ AVALIAÇÃO ============
-        async function enviarFeedback() {
-            const data = {
-                aluno_id: document.getElementById('feedback_aluno_id').value,
-                avaliador_id: document.getElementById('feedback_avaliador_id').value,
-                feedback: document.getElementById('feedback_texto').value,
-                pontuacao: parseFloat(document.getElementById('feedback_pontuacao').value)
-            };
-
-            if (!data.aluno_id || !data.avaliador_id || !data.feedback) {
-                alert('Preencha todos os campos!');
-                return;
-            }
-
-            showLoading('feedback-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/avaliacao/feedback`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                showResponse('feedback-response', result, response.ok);
-            } catch (error) {
-                showResponse('feedback-response', { erro: error.message }, false);
-            } finally {
-                showLoading('feedback-loading', false);
-            }
-        }
-
-        async function obterFeedbacks() {
-            const aluno_id = document.getElementById('get_feedback_aluno_id').value;
-            if (!aluno_id) {
-                alert('Digite o ID do aluno!');
-                return;
-            }
-
-            showLoading('get-feedback-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/avaliacao/feedback/${aluno_id}`);
-                const result = await response.json();
-                showResponse('get-feedback-response', result, response.ok);
-            } catch (error) {
-                showResponse('get-feedback-response', { erro: error.message }, false);
-            } finally {
-                showLoading('get-feedback-loading', false);
-            }
-        }
-
-        async function obterNotaParcial() {
-            const aluno_id = document.getElementById('notas_aluno_id').value;
-            if (!aluno_id) {
-                alert('Digite o ID do aluno!');
-                return;
-            }
-
-            showLoading('notas-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/avaliacao/nota-parcial/${aluno_id}`);
-                const result = await response.json();
-                showResponse('notas-response', result, response.ok);
-            } catch (error) {
-                showResponse('notas-response', { erro: error.message }, false);
-            } finally {
-                showLoading('notas-loading', false);
-            }
-        }
-
-        async function obterNotaFinal() {
-            const aluno_id = document.getElementById('notas_aluno_id').value;
-            if (!aluno_id) {
-                alert('Digite o ID do aluno!');
-                return;
-            }
-
-            showLoading('notas-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/avaliacao/nota-final/${aluno_id}`);
-                const result = await response.json();
-                showResponse('notas-response', result, response.ok);
-            } catch (error) {
-                showResponse('notas-response', { erro: error.message }, false);
-            } finally {
-                showLoading('notas-loading', false);
-            }
-        }
-
-        async function obterHistoricoNotas() {
-            const aluno_id = document.getElementById('notas_aluno_id').value;
-            if (!aluno_id) {
-                alert('Digite o ID do aluno!');
-                return;
-            }
-
-            showLoading('notas-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/avaliacao/historico/${aluno_id}`);
-                const result = await response.json();
-                showResponse('notas-response', result, response.ok);
-            } catch (error) {
-                showResponse('notas-response', { erro: error.message }, false);
-            } finally {
-                showLoading('notas-loading', false);
-            }
-        }
-
-        async function submeterVersaoFinal() {
-            const data = {
-                aluno_id: document.getElementById('final_aluno_id').value,
-                texto: document.getElementById('final_conteudo').value
-            };
-
-            if (!data.aluno_id || !data.texto) {
-                alert('Preencha todos os campos!');
-                return;
-            }
-
-            showLoading('final-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/documentos/versao-final`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                showResponse('final-response', result, response.ok);
-            } catch (error) {
-                showResponse('final-response', { erro: error.message }, false);
-            } finally {
-                showLoading('final-loading', false);
-            }
-        }
-
-        // ============ SISTEMA ============
-        async function verificarSaude() {
-            showLoading('saude-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/sistema/health`);
-                const result = await response.json();
-                showResponse('saude-response', result, response.ok);
-            } catch (error) {
-                showResponse('saude-response', { erro: error.message }, false);
-            } finally {
-                showLoading('saude-loading', false);
-            }
-        }
-
-        async function obterNotificacoes() {
-            const aluno_id = document.getElementById('notif_aluno_id').value;
-            if (!aluno_id) {
-                alert('Digite o ID do aluno!');
-                return;
-            }
-
-            showLoading('notif-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/sistema/notificacoes/${aluno_id}`);
-                const result = await response.json();
-                showResponse('notif-response', result, response.ok);
-            } catch (error) {
-                showResponse('notif-response', { erro: error.message }, false);
-            } finally {
-                showLoading('notif-loading', false);
-            }
-        }
-
-        async function obterStatus() {
-            const aluno_id = document.getElementById('status_aluno_id').value;
-            if (!aluno_id) {
-                alert('Digite o ID do aluno!');
-                return;
-            }
-
-            showLoading('status-loading', true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/sistema/status/${aluno_id}`);
-                const result = await response.json();
-                showResponse('status-response', result, response.ok);
-            } catch (error) {
-                showResponse('status-response', { erro: error.message }, false);
-            } finally {
-                showLoading('status-loading', false);
-            }
-        }
-
-        async function obterDocumentacao() {
-            showLoading('docs-loading', true);
-            try {
-                const response = await fetch('http://localhost:3000/api/docs');
-                const result = await response.json();
-                showResponse('docs-response', result, response.ok);
-            } catch (error) {
-                showResponse('docs-response', { erro: error.message }, false);
-            } finally {
-                showLoading('docs-loading', false);
-            }
-        }
-    </script>
+    // ---- Início ----
+    render();
+    setInterval(() => verificarConexao(token ? 'conn2' : 'conn'), 10000);
+  </script>
 </body>
 </html>

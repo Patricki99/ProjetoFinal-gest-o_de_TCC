@@ -1,1 +1,1 @@
-# Pacote common com utilitários compartilhados
+# Pacote common: utilitarios compartilhados (config, eventos, logger, db, llm)

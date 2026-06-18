@@ -1,31 +1,26 @@
+"""Cria o banco e as tabelas a partir de bd.sql. Credenciais via ambiente."""
+import os
 import mysql.connector
 
-# Conectar sem banco de dados
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="patricki"
-)
+DB = {
+    "host": os.getenv("DB_HOST", "localhost"),
+    "user": os.getenv("DB_USER", "root"),
+    "password": os.getenv("DB_PASSWORD", ""),
+}
 
-cursor = db.cursor()
+aqui = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(aqui, "bd.sql"), "r", encoding="utf-8") as f:
+    script = f.read()
 
-# Ler e executar o script SQL
-with open("bd.sql", "r", encoding="utf-8") as f:
-    sql_content = f.read()
-
-# Separar as queries e executar
-queries = sql_content.split(";")
-for query in queries:
-    query = query.strip()
-    if query:
-        try:
-            cursor.execute(query)
-            print(f" Executado: {query[:50]}...")
-        except Exception as e:
-            print(f" Erro: {e}")
-
-db.commit()
-cursor.close()
-db.close()
-
-print("\n Database configurado com sucesso!")
+con = mysql.connector.connect(**DB)
+cur = con.cursor()
+for q in (s.strip() for s in script.split(";")):
+    if not q:
+        continue
+    try:
+        cur.execute(q)
+        print(f"OK: {q[:60].replace(chr(10),' ')}...")
+    except Exception as e:
+        print(f"ERRO: {e}")
+con.commit(); cur.close(); con.close()
+print("Banco configurado.")

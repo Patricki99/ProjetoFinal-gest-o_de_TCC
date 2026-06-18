@@ -1,31 +1,17 @@
 {
   "name": "gateway-tcc",
   "version": "1.0.0",
-  "description": "Gateway Node.js para Sistema de Gestão de TCC",
+  "description": "Backend Gateway (BFF) Node.js para o Sistema de Gestao de TCC",
   "main": "app.js",
-  "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "test": "jest"
-  },
-  "keywords": [
-    "tcc",
-    "zmq",
-    "gateway",
-    "api"
-  ],
-  "author": "Unifei",
+  "scripts": { "start": "node app.js", "dev": "nodemon app.js" },
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.5.4",
+    "socket.io": "^4.7.5",
     "zeromq": "^6.0.0",
-    "uuid": "^9.0.0",
+    "uuid": "^9.0.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "morgan": "^1.10.0"
+    "dotenv": "^16.4.5"
   },
-  "devDependencies": {
-    "nodemon": "^2.0.20"
-  }
+  "devDependencies": { "nodemon": "^3.1.0" }
 }

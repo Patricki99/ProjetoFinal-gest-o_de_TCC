@@ -1,61 +1,35 @@
-// Configuração de portas ZMQ e endereços
-const ZMQ_CONFIG = {
-  submissao: {
-    address: "tcp://localhost:5560",
-    pattern: "PUB",
-    events: ["proposta_submetida"]
-  },
-  documentos: {
-    address: "tcp://localhost:5555",
-    pattern: "PUB",
-    events: ["versao_submetida", "versao_parcial_entregue", "versao_final_entregue"]
-  },
-  avaliacao: {
-    address: "tcp://localhost:5563",
-    pattern: "PUB",
-    events: ["feedback_enviado", "nota_parcial_atribuida"]
-  },
-  ia: {
-    address: "tcp://localhost:5562",
-    pattern: "PUB",
-    events: ["pendencias_identificadas", "feedback_atendido", "analise_banca_consolidada"]
-  },
-  banca: {
-    address: "tcp://localhost:5564",
-    pattern: "PUB",
-    events: ["comentarios_banca_enviados", "nota_banca_submetida"]
-  },
-  notificacao: {
-    address: "tcp://localhost:5566",
-    pattern: "PUB",
-    events: ["*"]
-  },
-  relatorio: {
-    address: "tcp://localhost:5565",
-    pattern: "PULL",
-    events: ["relatorio_gerado"]
-  }
+// Portas ZeroMQ do gateway.
+//  - PUB (bind 5570): injeta comandos do cliente na malha (PUB/SUB).
+//  - SUB (connect): ouve os eventos dos servicos e os repassa ao WebSocket.
+//  - DEALER (connect 5561): login sincrono no servico de Autenticacao (DEALER/ROUTER).
+//  - PUSH (connect 5567): solicita relatorios ao coordenador de Relatorios (PUSH/PULL).
+require("dotenv").config();
+const PORTAS = {
+  gateway: 5570, documentos: 5555, ia: 5562, avaliacao: 5563, notificacao: 5566,
+  autenticacao: 5561, banca: 5564, relatorio: 5565, relatorio_req: 5567,
 };
 
-// Configuração do Gateway
+// Host (IP) de cada peer. Padrao localhost. Para multi-maquina, defina
+// HOST_<SERVICO> (ex.: HOST_NOTIFICACAO=192.168.0.11) ou ZMQ_HOST p/ todos.
+function hostOf(nome) {
+  return process.env[`HOST_${nome.toUpperCase()}`] || process.env.ZMQ_HOST || "localhost";
+}
+const addr = (nome) => `tcp://${hostOf(nome)}:${PORTAS[nome]}`;
+
+const ZMQ = {
+  gatewayBind: `tcp://*:${PORTAS.gateway}`,
+  subscribeTo: ["documentos", "ia", "avaliacao", "notificacao", "banca", "relatorio"].map(addr),
+  authDealer: addr("autenticacao"),     // DEALER -> ROUTER da Autenticacao
+  relatorioReq: addr("relatorio_req"),  // PUSH  -> coordenador de Relatorios
+};
+
 const GATEWAY_CONFIG = {
   port: process.env.PORT || 3000,
-  host: process.env.HOST || "localhost",
-  wsPort: process.env.WS_PORT || 3001,
-  
-  // Timeout para requisições ZMQ (ms)
-  zmqTimeout: 5000,
-  
-  // CORS
+  host: process.env.HOST || "localhost",   // use 0.0.0.0 para aceitar acesso de outra maquina
   cors: {
-    origin: process.env.CORS_ORIGIN || ["http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:8080"],
+    origin: process.env.CORS_ORIGIN || "*", // prototipo: libera a interface (inclusive de outra maquina)
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true
-  }
+  },
 };
-
-module.exports = {
-  ZMQ_CONFIG,
-  GATEWAY_CONFIG
-};
+module.exports = { ZMQ, PORTAS, GATEWAY_CONFIG };

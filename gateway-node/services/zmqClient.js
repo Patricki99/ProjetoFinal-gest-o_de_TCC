@@ -1,148 +1,109 @@
-// Serviço de comunicação ZMQ
+// Cliente ZeroMQ do gateway (zeromq v6) — demonstra os 3 padroes:
+//   PUB (bind)      : publica comandos do cliente (versao_recebida, parecer_recebido, banca_definida...) na malha.
+//   SUB (connect)   : ouve eventos dos servicos e os repassa ao WebSocket.
+//   DEALER (connect): login sincrono no servico de Autenticacao (request-reply).
+//   PUSH (connect)  : solicita relatorios ao coordenador (pipeline PUSH/PULL).
 const zmq = require("zeromq");
 const { EventEmitter } = require("events");
-const { ZMQ_CONFIG } = require("../config/zmq");
+const { ZMQ } = require("../config/zmq");
 
 class ZMQClient extends EventEmitter {
   constructor() {
     super();
-    this.subscribers = {};
-    this.logger = console; // Em produção, usar winston/bunyan
-    this.isConnected = false;
+    this.pub = null;
+    this.subs = [];
+    this.authDealer = null;
+    this.relatorioPush = null;
+    this.running = false;
+    this._authLock = Promise.resolve();   // serializa logins no DEALER
   }
 
-  /**
-   * Inicia os subscribers para ouvir eventos dos serviços
-   */
   async start() {
-    try {
-      this.logger.log("🚀 Iniciando ZMQ Client...");
+    this.pub = new zmq.Publisher();
+    await this.pub.bind(ZMQ.gatewayBind);
+    console.log(`✓ PUB do gateway em ${ZMQ.gatewayBind}`);
 
-      // Criar subscribers para cada serviço
-      for (const [serviceName, config] of Object.entries(ZMQ_CONFIG)) {
-        if (config.pattern === "PUB") {
-          this.subscribeToService(serviceName, config);
-        }
-      }
-
-      this.isConnected = true;
-      this.logger.log("✅ ZMQ Client iniciado com sucesso");
-    } catch (error) {
-      this.logger.error("❌ Erro ao iniciar ZMQ:", error);
-      throw error;
+    for (const addr of ZMQ.subscribeTo) {
+      const sub = new zmq.Subscriber();
+      sub.connect(addr);
+      sub.subscribe("");
+      this.subs.push(sub);
+      this._consume(sub, addr).catch((e) => console.error("SUB loop:", e.message));
+      console.log(`✓ SUB conectado a ${addr}`);
     }
+
+    this.authDealer = new zmq.Dealer({ receiveTimeout: 4000 });
+    this.authDealer.connect(ZMQ.authDealer);
+    console.log(`✓ DEALER (login) -> ${ZMQ.authDealer}`);
+
+    this.relatorioPush = new zmq.Push();
+    this.relatorioPush.connect(ZMQ.relatorioReq);
+    console.log(`✓ PUSH (relatorios) -> ${ZMQ.relatorioReq}`);
+
+    this.running = true;
   }
 
-  /**
-   * Subscreve a um serviço específico
-   */
-  subscribeToService(serviceName, config) {
-    try {
-      const socket = zmq.socket("sub");
-      
-      socket.connect(config.address);
-      
-      // Subscrever a todos os eventos do serviço
-      socket.setsockopt(zmq.ZMQ_SUBSCRIBE, "");
-
-      socket.on("message", (topic, content) => {
-        try {
-          const topicStr = topic.toString();
-          const message = JSON.parse(content.toString());
-          
-          this.logger.log(`[${serviceName}] Evento recebido: ${topicStr}`);
-          
-          // Emitir evento para WebSocket (notificações em tempo real)
-          this.emit("evento", {
-            servico: serviceName,
-            tipo: topicStr,
-            dados: message,
-            timestamp: new Date().toISOString()
-          });
-        } catch (error) {
-          this.logger.error(`Erro ao processar mensagem de ${serviceName}:`, error);
-        }
-      });
-
-      this.subscribers[serviceName] = socket;
-      this.logger.log(`✓ Conectado a ${serviceName} em ${config.address}`);
-    } catch (error) {
-      this.logger.error(`Erro ao subscrever a ${serviceName}:`, error);
-    }
-  }
-
-  /**
-   * Publica um evento para um serviço específico via REQ/REP
-   * (Simula DEALER/ROUTER)
-   */
-  async publishEvent(serviceName, evento) {
-    return new Promise((resolve, reject) => {
+  async _consume(sub, addr) {
+    for await (const [frame] of sub) {
       try {
-        // Usar socket PUB do gateway para publicar
-        // Em produção real, isso seria um DEALER/ROUTER para RPC
-        
-        // Por enquanto, apenas simular que foi enviado
-        this.logger.log(`📤 Evento publicado para ${serviceName}: ${evento.evento}`);
-        
-        resolve({
-          success: true,
-          message: `Evento ${evento.evento} enviado para ${serviceName}`
-        });
-      } catch (error) {
-        reject(error);
+        const s = frame.toString();
+        const i = s.indexOf(" ");
+        const topic = i >= 0 ? s.slice(0, i) : s;
+        const dados = i >= 0 ? JSON.parse(s.slice(i + 1)) : {};
+        this.emit("evento", { tipo: topic, dados, address: addr, timestamp: new Date().toISOString() });
+      } catch (e) {
+        console.error(`Parse de evento (${addr}):`, e.message);
       }
-    });
-  }
-
-  /**
-   * Aguarda resposta de um serviço (para operações síncronas)
-   */
-  async requestResponse(serviceName, request, timeout = 5000) {
-    return new Promise((resolve, reject) => {
-      // Em produção real, implementar com DEALER/ROUTER
-      setTimeout(() => {
-        resolve({
-          success: true,
-          data: `Resposta simulada do ${serviceName}`
-        });
-      }, 100);
-    });
-  }
-
-  /**
-   * Verifica saúde da conexão ZMQ
-   */
-  async healthCheck() {
-    const health = {
-      connected: this.isConnected,
-      subscribers: Object.keys(this.subscribers).length,
-      services: {}
-    };
-
-    for (const [serviceName, socket] of Object.entries(this.subscribers)) {
-      health.services[serviceName] = {
-        connected: !!socket,
-        address: ZMQ_CONFIG[serviceName].address
-      };
     }
-
-    return health;
   }
 
-  /**
-   * Encerra o cliente ZMQ
-   */
+  // PUB/SUB: injeta um comando do cliente na malha ("topico {json}")
+  async publishCommand(topic, evento) {
+    if (!this.pub) throw new Error("ZMQ PUB nao iniciado");
+    await this.pub.send(`${topic} ${JSON.stringify(evento)}`);
+    console.log(`📤 comando publicado: ${topic} (aluno ${evento.aluno_id})`);
+    return { success: true };
+  }
+
+  // DEALER/ROUTER: login sincrono (serializado para casar requisicao<->resposta)
+  async login(credenciais) {
+    const anterior = this._authLock;
+    let liberar;
+    this._authLock = new Promise((r) => (liberar = r));
+    await anterior;
+    try {
+      await this.authDealer.send(JSON.stringify(credenciais));
+      const frames = await this.authDealer.receive();
+      return JSON.parse(frames[frames.length - 1].toString());
+    } finally {
+      liberar();
+    }
+  }
+
+  // PUSH/PULL: solicita a geracao distribuida de um relatorio
+  async solicitarRelatorio(payload) {
+    if (!this.relatorioPush) throw new Error("PUSH de relatorios nao iniciado");
+    await this.relatorioPush.send(JSON.stringify(payload));
+    console.log(`📤 relatorio solicitado: ${payload.tipo} (${payload.solicitante})`);
+    return { success: true };
+  }
+
+  healthCheck() {
+    return {
+      connected: this.running, publisher: !!this.pub, subscribers: this.subs.length,
+      auth: !!this.authDealer, relatorios: !!this.relatorioPush,
+    };
+  }
+
   async shutdown() {
     try {
-      for (const [serviceName, socket] of Object.entries(this.subscribers)) {
-        socket.close();
-      }
-      this.isConnected = false;
-      this.logger.log("✅ ZMQ Client encerrado");
-    } catch (error) {
-      this.logger.error("❌ Erro ao encerrar ZMQ:", error);
-    }
+      if (this.pub) this.pub.close();
+      this.subs.forEach((s) => s.close());
+      if (this.authDealer) this.authDealer.close();
+      if (this.relatorioPush) this.relatorioPush.close();
+    } catch (e) {}
+    this.running = false;
+    console.log("✓ ZMQ client encerrado");
   }
 }
-
 module.exports = new ZMQClient();
